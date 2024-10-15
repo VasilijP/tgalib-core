@@ -1,4 +1,9 @@
-﻿# TgaLib
+# TgaLib core
+
+- Forked from *shns/TgaLib:master* in order to upgrade project file for .Net 8
+
+# TgaLib
+
 --------
 TgaLib is a library to decode TARGA image format.
 
