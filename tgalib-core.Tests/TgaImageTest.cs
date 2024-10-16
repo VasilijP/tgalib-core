@@ -11,22 +11,22 @@ namespace tgalib_core.Tests;
 public class TgaImageTest
 {
     [Test]
-    [TestCase("resources/UBW8.tga", "resources/grayscale.png", false)]
-    [TestCase("resources/UCM8.tga", "resources/color.png", false)]
-    [TestCase("resources/UTC16.tga", "resources/color.png", false)]
-    [TestCase("resources/UTC24.tga", "resources/color.png", false)]
-    [TestCase("resources/UTC32.tga", "resources/color.png", false)]
-    [TestCase("resources/UBW8.tga", "resources/grayscale.png", true)]
-    [TestCase("resources/CBW8.tga", "resources/grayscale.png", false)]
-    [TestCase("resources/CCM8.tga", "resources/color.png", false)]
-    [TestCase("resources/CTC16.tga", "resources/color.png", false)]
-    [TestCase("resources/CTC24.tga", "resources/color.png", false)]
-    [TestCase("resources/CTC32.tga", "resources/color.png", false)]
+    [TestCase("resources/UBW8.TGA", "resources/grayscale.png", false)]
+    [TestCase("resources/UCM8.TGA", "resources/color.png", false)]
+    [TestCase("resources/UTC16.TGA", "resources/color.png", false)]
+    [TestCase("resources/UTC24.TGA", "resources/color.png", false)]
+    [TestCase("resources/UTC32.TGA", "resources/color.png", false)]
+    [TestCase("resources/UBW8.TGA", "resources/grayscale.png", true)]
+    [TestCase("resources/CBW8.TGA", "resources/grayscale.png", false)]
+    [TestCase("resources/CCM8.TGA", "resources/color.png", false)]
+    [TestCase("resources/CTC16.TGA", "resources/color.png", false)]
+    [TestCase("resources/CTC24.TGA", "resources/color.png", false)]
+    [TestCase("resources/CTC32.TGA", "resources/color.png", false)]
     [TestCase("resources/rgb32rle.tga","resources/rgb32rle.png", true)]
     public void TestGetBitmap(string filename, string expected, bool useAlphaForcefully)
     {
-        using var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-        using var r = new BinaryReader(fs);
+        using FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
+        using BinaryReader r = new BinaryReader(fs);
         
         /* TODO:
         var expectedImage = new BitmapImage(new Uri(expected, UriKind.Relative));
