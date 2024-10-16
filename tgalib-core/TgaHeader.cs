@@ -20,7 +20,7 @@ public class TgaHeader
     /// <summary>
     /// Gets or sets a Image type(<see cref="ImageTypes"/>).
     /// </summary>
-    public byte ImageType { get; set; }
+    public TgaMode ImageType { get; set; }
 
     /// <summary>
     /// Gets or sets an offset of first entry in the palette.
@@ -85,7 +85,7 @@ public class TgaHeader
     {
         IDLength = reader.ReadByte();
         ColorMapType = reader.ReadByte();
-        ImageType = reader.ReadByte();
+        ImageType = (TgaMode)reader.ReadByte();
         ColorMapStart = reader.ReadUInt16();
         ColorMapLength = reader.ReadUInt16();
         ColorMapDepth = reader.ReadByte();

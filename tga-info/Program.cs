@@ -6,9 +6,9 @@ namespace tga_info
     {
         private static void Main(string[] args)
         {
-            using FileStream fs = new FileStream(args[0], FileMode.Open, FileAccess.Read, FileShare.Read);
-            using BinaryReader reader = new BinaryReader(fs);
-            TgaImage tga = new TgaImage(reader);
+            using FileStream fs = new(args[0], FileMode.Open, FileAccess.Read, FileShare.Read);
+            using BinaryReader reader = new(fs);
+            TgaImage tga = new(reader);
             Console.WriteLine($"{tga}");
         }
     }

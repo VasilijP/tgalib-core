@@ -31,44 +31,38 @@ public static class ColorMapTypes
     }
 }
 
+public enum TgaMode : byte 
+{
+    NoImage = 0, // No image data included.
+    ColorMapped = 1, // Uncompressed, color-mapped image.
+    Pal8Unc = 1, //color mapped uncompressed
+    TrueColor = 2, // Uncompressed, true-color image.
+    Rgb24Unc = 2, //rgb uncompressed
+    Monochrome = 3, // Uncompressed, black and white image.
+    CompressedColorMapped = 9, // Run-length encoded, color-mapped image.
+    Pal8Rle = 9, //rle color mapped
+    CompressedTrueColor = 10, // Run-length encoded, true-color image.
+    Rgb24Rle = 10, //Runlength encoded RGB
+    CompressedMonochrome = 11 // Run-length encoded, black and white image.
+}
+
 /// <summary>
 /// Image type.
 /// </summary>
 public static class ImageTypes
 {
-    /// <summary>No image data included.</summary>
-    public const byte NoImage = 0;
-
-    /// <summary>Uncompressed, color-mapped image.</summary>
-    public const byte ColorMapped = 1;
-
-    /// <summary>Uncompressed, true-color image.</summary>
-    public const byte TrueColor = 2;
-
-    /// <summary>Uncompressed, black and white image.</summary>
-    public const byte Monochrome = 3;
-
-    /// <summary>Run-length encoded, color-mapped image.</summary>
-    public const byte CompressedColorMapped = 9;
-
-    /// <summary>Run-length encoded, true-color image.</summary>
-    public const byte CompressedTrueColor = 10;
-
-    /// <summary>Run-length encoded, black and white image.</summary>
-    public const byte CompressedMonochrome = 11;
-
     /// <summary>
     /// Formatted text.
     /// </summary>
-    private static readonly Dictionary<byte, string> FormattedText = new Dictionary<byte, string>()
+    private static readonly Dictionary<TgaMode, string> FormattedText = new()
     {
-        { NoImage, "no image" },
-        { ColorMapped, "color-mapped(uncompressed)" },
-        { TrueColor, "true-color(uncompressed)" },
-        { Monochrome, "monochrome(uncompressed)" },
-        { CompressedColorMapped, "color-mapped(RLE)" },
-        { CompressedTrueColor, "true-color(RLE)" },
-        { CompressedMonochrome, "monochrome(RLE)" },
+        { TgaMode.NoImage, "no image" },
+        { TgaMode.ColorMapped, "color-mapped(uncompressed)" },
+        { TgaMode.TrueColor, "true-color(uncompressed)" },
+        { TgaMode.Monochrome, "monochrome(uncompressed)" },
+        { TgaMode.CompressedColorMapped, "color-mapped(RLE)" },
+        { TgaMode.CompressedTrueColor, "true-color(RLE)" },
+        { TgaMode.CompressedMonochrome, "monochrome(RLE)" },
     };
 
     /// <summary>
@@ -76,13 +70,9 @@ public static class ImageTypes
     /// </summary>
     /// <param name="value">An image type value.</param>
     /// <returns>Returns a formatted text.</returns>
-    public static string ToFormattedText(byte value)
+    public static string ToFormattedText(TgaMode value)
     {
-        if (!FormattedText.ContainsKey(value))
-        {
-            return "???";
-        }
-        return FormattedText[value];
+        return FormattedText.GetValueOrDefault(value, "???");
     }
 }
 

@@ -1,6 +1,8 @@
 # TgaLib core
 
 - Forked from *shns/TgaLib:master* in order to upgrade project file for .Net 8
+- Removed platform specific parts so this could work on non-Windows OS.
+- Added my old (2004 / Java) implementation for saving&loading of 24bit RGB TGA images.
 
 # TgaLib
 

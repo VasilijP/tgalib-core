@@ -115,8 +115,8 @@ namespace tgalib_core
         {
             switch (TgaHeader.ImageType)
             {
-                case ImageTypes.ColorMapped:
-                case ImageTypes.CompressedColorMapped:
+                case TgaMode.ColorMapped:
+                case TgaMode.CompressedColorMapped:
                     {
                         // color depth of color-mapped image is defined in the palette
                         switch (TgaHeader.ColorMapDepth)
@@ -129,8 +129,8 @@ namespace tgalib_core
                         }
                     }
 
-                case ImageTypes.TrueColor:
-                case ImageTypes.CompressedTrueColor:
+                case TgaMode.TrueColor:
+                case TgaMode.CompressedTrueColor:
                     {
                         switch (TgaHeader.PixelDepth)
                         {
@@ -142,8 +142,8 @@ namespace tgalib_core
                         }
                     }
 
-                case ImageTypes.Monochrome:
-                case ImageTypes.CompressedMonochrome:
+                case TgaMode.Monochrome:
+                case TgaMode.CompressedMonochrome:
                     {
                         switch (TgaHeader.PixelDepth)
                         {
@@ -194,15 +194,15 @@ namespace tgalib_core
         {
             switch (TgaHeader.ImageType)
             {
-                case ImageTypes.ColorMapped:
-                case ImageTypes.TrueColor:
-                case ImageTypes.Monochrome:
+                case TgaMode.ColorMapped:
+                case TgaMode.TrueColor:
+                case TgaMode.Monochrome:
                     ReadUncompressedData(reader);
                     break;
 
-                case ImageTypes.CompressedColorMapped:
-                case ImageTypes.CompressedTrueColor:
-                case ImageTypes.CompressedMonochrome:
+                case TgaMode.CompressedColorMapped:
+                case TgaMode.CompressedTrueColor:
+                case TgaMode.CompressedMonochrome:
                     DecodeRunLengthEncoding(reader);
                     break;
 
@@ -291,8 +291,8 @@ namespace tgalib_core
 
             switch (TgaHeader.ImageType)
             {
-                case ImageTypes.ColorMapped:
-                case ImageTypes.CompressedColorMapped:
+                case TgaMode.ColorMapped:
+                case TgaMode.CompressedColorMapped:
                     {
                         // Extracts a pixel data in the palette.
                         long paletteIndex = GetPaletteIndex(rawPixelData);
@@ -307,10 +307,10 @@ namespace tgalib_core
                     }
                     break;
 
-                case ImageTypes.TrueColor:
-                case ImageTypes.Monochrome:
-                case ImageTypes.CompressedTrueColor:
-                case ImageTypes.CompressedMonochrome:
+                case TgaMode.TrueColor:
+                case TgaMode.Monochrome:
+                case TgaMode.CompressedTrueColor:
+                case TgaMode.CompressedMonochrome:
                     // Returns a raw pixel data as is.
                     pixelData = rawPixelData;
                     break;
