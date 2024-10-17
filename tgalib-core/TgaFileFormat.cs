@@ -41,10 +41,10 @@
  * header[17] = 0;	0 bits for Alpha Channel, non-interleaved, Origin in lower left-hand corner
  * 
  * @author  Peter Truchly   */
-public sealed class TgaFileFormat
+public static class TgaFileFormat
 {
 	// Common save routine.
-	public void CommonSave(TgaMode curTgaMode, Stream stream, Image g) 
+	public static void CommonSave(TgaMode curTgaMode, Stream stream, TgaImage g)
 	{
 		// ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
 		switch (curTgaMode)
@@ -58,10 +58,10 @@ public sealed class TgaFileFormat
 	}
 
 	// TGA RGB 24 RLE save code.
-	private static void TgaRgb24RleSave(Stream tgaFile, Image image)
+	private static void TgaRgb24RleSave(Stream tgaFile, TgaImage image)
 	{
-		int width = image.Width;
-		int height = image.Height;
+		int width = image.TgaHeader.Width;
+		int height = image.TgaHeader.Height;
 		
 		//                1| 2| 3| 4| 5| 6| 7| 8| 9|10|11|12|               13|                    14|                15|                     16|17|18		    
 		byte[] header = [ 0, 0,10, 0, 0, 0, 0, 0, 0, 0, 0, 0,(byte)(width&255),(byte)((width>>8)&255),(byte)(height&255),(byte)((height>>8)&255),24, 0];		
@@ -84,10 +84,10 @@ public sealed class TgaFileFormat
 	// Stops when entire image is searched or palette is full (max 256 colors)
 	// Colors which are not in palette are written as color 0 (there should be no more than 256 colors in image)
 	// Performs RLE compression
-	private static void TgaPal8RleSave(Stream tgaFile, Image image)
+	private static void TgaPal8RleSave(Stream tgaFile, TgaImage image)
 	{
-		int width = image.Width;
-		int height = image.Height;
+		int width = image.TgaHeader.Width;
+		int height = image.TgaHeader.Height;
 		const int maxColors = 256;
 		
 		//palette (BGR)
@@ -109,8 +109,8 @@ public sealed class TgaFileFormat
 		byte[] header = [ 0, 1, 9, 0, 0, (byte)(pal.Count&255),(byte)((pal.Count>>8)&255),24, 0, 0, 0, 0, (byte)(width&255),(byte)((width>>8)&255),(byte)(height&255),(byte)((height>>8)&255), 8, 0 ];		
 		tgaFile.Write(header);
 
-		// write palette to file
-		for (int rpc = 0; rpc < maxColors; rpc++) { tgaFile.Write(pal[rpc]); }
+		// write palette to file & init hashmap
+		foreach (byte[] color in pal) { tgaFile.Write(color); }
 		
 		// run through image and code pixels as indexes using dictionary
 		RleCompressor rlec = new(tgaFile);
@@ -130,12 +130,12 @@ public sealed class TgaFileFormat
 	// Seraches image for unique colors.
 	// Stops when entire image is searched or palette is full (max 256 colors)
 	//   Colors which are not in palette are written as color 0 (there should be no more than 256 colors in image)
-	private void TgaPal8UncSave(Stream tgaFile, Image image)
+	private static void TgaPal8UncSave(Stream tgaFile, TgaImage image)
 	{
 		//header
-		int width = image.Width;
-		int height = image.Height;
-		const int pallen = 256; //change also header!
+		int width = image.TgaHeader.Width;
+		int height = image.TgaHeader.Height;
+		const int maxColors = 256;
 		
 		//palette ( colors are stored as BGR in file )
 		List<byte[]> pal = [];
@@ -147,13 +147,13 @@ public sealed class TgaFileFormat
 			{
 				image.GetPixelRgba(x, y, out int r, out int g, out int b, out int a);
 				string key = $"{r & 255}|{g & 255}|{b & 255}";
-				if (hm.ContainsKey(key) || hm.Count >= pallen) continue;
+				if (hm.ContainsKey(key) || hm.Count >= maxColors) continue;
 				hm.TryAdd(key, pal.Count); // index of a color in palette
 				pal.Add([(byte)(b & 255), (byte)(g & 255), (byte)(r & 255)]); //palette entry
 			}
 		
-		//                1| 2| 3| 4| 5|                  6|                      7| 8| 9|10|11|12|                13|                    14|                15|                     16|17|18
-		byte[] header = [ 0, 1, 1, 0, 0, (byte)(pallen&255),(byte)((pallen>>8)&255),24, 0, 0, 0, 0, (byte)(width&255),(byte)((width>>8)&255),(byte)(height&255),(byte)((height>>8)&255), 8, 0 ];		
+		//                1| 2| 3| 4| 5|                       6|                           7| 8| 9|10|11|12|                13|                    14|                15|                     16|17|18
+		byte[] header = [ 0, 1, 1, 0, 0, (byte)(pal.Count & 255),(byte)((pal.Count >> 8)&255),24, 0, 0, 0, 0, (byte)(width&255),(byte)((width>>8)&255),(byte)(height&255),(byte)((height>>8)&255), 8, 0 ];		
 		tgaFile.Write(header);
 
 		// write palette to file & init hashmap
@@ -172,10 +172,10 @@ public sealed class TgaFileFormat
 	}
 
 	// TGA RGB 24 UNC save code.
-	private static void TgaRgb24UncSave(Stream tgaFile, Image image)
+	private static void TgaRgb24UncSave(Stream tgaFile, TgaImage image)
 	{
-		int width = image.Width;
-		int height = image.Height;
+		int width = image.TgaHeader.Width;
+		int height = image.TgaHeader.Height;
 		
 		//               1| 2| 3| 4| 5| 6| 7| 8| 9|10|11|12|               13|                    14|                15|                     16|17|18
 		byte[] header = [0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0,(byte)(width&255),(byte)((width>>8)&255),(byte)(height&255),(byte)((height>>8)&255),24, 0];		

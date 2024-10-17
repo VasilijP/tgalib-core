@@ -16,11 +16,16 @@ namespace tgalib_core
         /// Gets or sets a header.
         /// </summary>
         public TgaHeader TgaHeader { get; set; }
+        public int Width => TgaHeader.Width;
+        public int Height => TgaHeader.Height;
+        private int imageWidth;
+        
+        public PixelFormat PixelFormat { get; set; }
 
         /// <summary>
         /// Gets or sets an image ID.
         /// </summary>
-        public byte[] ImageID { get; set; }
+        public byte[] ImageId { get; set; }
 
         /// <summary>
         /// Gets or sets a color map(palette).
@@ -46,21 +51,31 @@ namespace tgalib_core
         /// Gets or sets a footer.
         /// </summary>
         public TgaFooter Footer { get; set; }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
+        
+        public TgaImage(string filename, bool useAlphaChannelForcefully = false)
+        {
+            this.useAlphaChannelForcefully = useAlphaChannelForcefully;
+            using FileStream ts = new(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using BinaryReader br = new(ts);
+            Init(br);
+        }
+        
         /// <param name="reader">A binary reader that contains TGA file. Caller must dipose the binary reader.</param>
         /// <param name="useAlphaChannelForcefully">Use the alpha channel forcefully, if true.</param>
         public TgaImage(BinaryReader reader, bool useAlphaChannelForcefully = false)
         {
             this.useAlphaChannelForcefully = useAlphaChannelForcefully;
-
+            Init(reader);
+        }
+        
+        private void Init(BinaryReader reader)
+        {
             TgaHeader = new TgaHeader(reader);
 
-            ImageID = new byte[TgaHeader.IDLength];
-            reader.Read(ImageID, 0, ImageID.Length);
-
+            ImageId = new byte[TgaHeader.IDLength];
+            reader.Read(ImageId, 0, ImageId.Length);
+            PixelFormat = DecodePixelFormat();
+            imageWidth = TgaHeader.Width;
             int bytesPerPixel = GetBytesPerPixel();
 
             ColorMap = new byte[TgaHeader.ColorMapLength * bytesPerPixel];
@@ -71,15 +86,8 @@ namespace tgalib_core
             {
                 Footer = new TgaFooter(reader);
 
-                if (Footer.ExtensionAreaOffset != 0)
-                {
-                    ExtensionArea = new ExtensionArea(reader, Footer.ExtensionAreaOffset);
-                }
-
-                if (Footer.DeveloperDirectoryOffset != 0)
-                {
-                    DeveloperArea = new DeveloperArea(reader, Footer.DeveloperDirectoryOffset);
-                }
+                if (Footer.ExtensionAreaOffset != 0) { ExtensionArea = new ExtensionArea(reader, Footer.ExtensionAreaOffset); }
+                if (Footer.DeveloperDirectoryOffset != 0) { DeveloperArea = new DeveloperArea(reader, Footer.DeveloperDirectoryOffset); }
             }
 
             reader.BaseStream.Seek(position, SeekOrigin.Begin);
@@ -102,16 +110,66 @@ namespace tgalib_core
             return sb.ToString();
         }
         
-        public Image GetImage()
+        // Decoded image data. This allows platform specific conversion to the desired image/texture format.
+        // X Origin of Image: Integer ( lo-hi ) X coordinate of the lower left corner of the image.
+        // Y Origin of Image: Integer ( lo-hi ) Y coordinate of the lower left corner of the image.
+        public void GetPixelRgba(int x, int y, out int r, out int g, out int b, out int a)
         {
-            return new Image(TgaHeader, Footer, GetPixelFormat(), ImageBytes);
+            int index = y * imageWidth + x;
+
+            switch (PixelFormat)
+            {
+                case PixelFormat.Bgra32:
+                {
+                    int byteIndex = index * 4; // 4 bytes per pixel
+                    b = ImageBytes[byteIndex];
+                    g = ImageBytes[byteIndex + 1];
+                    r = ImageBytes[byteIndex + 2];
+                    a = ImageBytes[byteIndex + 3];
+                    break;
+                }
+                case PixelFormat.Bgr24:
+                {
+                    int byteIndex = index * 3; // 3 bytes per pixel
+                    b = ImageBytes[byteIndex];
+                    g = ImageBytes[byteIndex + 1];
+                    r = ImageBytes[byteIndex + 2];
+                    a = 255; // Fully opaque
+                    break;
+                }
+                case PixelFormat.Bgr555:
+                {
+                    int byteIndex = index * 2; // 2 bytes per pixel
+                    ushort value = (ushort)(ImageBytes[byteIndex] | (ImageBytes[byteIndex + 1] << 8));
+
+                    // Bits: x RRRRR GGGGG BBBBB
+                    int r5 = (value >> 10) & 0x1F;
+                    int g5 = (value >> 5) & 0x1F;
+                    int b5 = value & 0x1F;
+
+                    // Expand 5-bit values to 8-bit
+                    r = (r5 << 3) | (r5 >> 2);
+                    g = (g5 << 3) | (g5 >> 2);
+                    b = (b5 << 3) | (b5 >> 2);
+                    a = 255; // Fully opaque
+                    break;
+                }
+                case PixelFormat.Gray8:
+                {
+                    int v = ImageBytes[index];
+                    r = g = b = v;
+                    a = 255; // Fully opaque
+                    break;
+                }
+                default: throw new NotSupportedException($"Pixel format {PixelFormat} is not supported.");
+            }
         }
 
         /// <summary>
         /// Gets a pixel format of TGA image.
         /// </summary>
         /// <returns>Returns a pixel format of TGA image.</returns>
-        private PixelFormat GetPixelFormat()
+        private PixelFormat DecodePixelFormat()
         {
             switch (TgaHeader.ImageType)
             {
@@ -152,8 +210,7 @@ namespace tgalib_core
                         }
                     }
 
-                default:
-                    throw new NotSupportedException($"Image type \"{TgaHeader.ImageType}({ImageTypes.ToFormattedText(TgaHeader.ImageType)})\" isn't supported.");
+                default: throw new NotSupportedException($"Image type \"{TgaHeader.ImageType}({ImageTypes.ToFormattedText(TgaHeader.ImageType)})\" isn't supported.");
             }
         }
 
@@ -163,9 +220,8 @@ namespace tgalib_core
         /// <returns>Returns bytes per pixel.</returns>
         private int GetBytesPerPixel()
         {
-            PixelFormat pixelFormat = GetPixelFormat();
             int bitsPerPixel = 0;
-            switch (pixelFormat) // inline table for pixel format at least for Bgra32, Bgr555, Bgr24, Gray8
+            switch (PixelFormat) // inline table for pixel format at least for Bgra32, Bgr555, Bgr24, Gray8
             {
                 case PixelFormat.Bgra32:
                     bitsPerPixel = 32; // 8 bits per channel (Blue, Green, Red, Alpha)
@@ -181,7 +237,7 @@ namespace tgalib_core
                     break;
                 // Add more cases for other pixel formats if needed
                 default:
-                    throw new NotSupportedException($"Pixel format {pixelFormat} is not supported.");
+                    throw new NotSupportedException($"Pixel format {PixelFormat} is not supported.");
             }
             return (bitsPerPixel + 7) / 8;
         }
@@ -319,7 +375,7 @@ namespace tgalib_core
                     throw new NotSupportedException($"Image type \"{TgaHeader.ImageType}({ImageTypes.ToFormattedText(TgaHeader.ImageType)})\" isn't supported.");
             }
 
-            if (!HasAlpha() && !useAlphaChannelForcefully && (GetPixelFormat() == PixelFormat.Bgra32))
+            if (!HasAlpha() && !useAlphaChannelForcefully && PixelFormat == PixelFormat.Bgra32)
             {
                 pixelData[ArgbOffset.Alpha] = 0xFF;
             }
@@ -352,7 +408,7 @@ namespace tgalib_core
         /// </returns>
         private bool HasAlpha()
         {
-            bool hasAlpha = (TgaHeader.AttributeBits == 8) || (GetPixelFormat() == PixelFormat.Bgra32);
+            bool hasAlpha = TgaHeader.AttributeBits == 8 || PixelFormat == PixelFormat.Bgra32;
 
             if (ExtensionArea != null)
             {

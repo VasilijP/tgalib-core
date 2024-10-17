@@ -17,10 +17,33 @@ Following features are support:
 ## Example
 ----------
 ```C#
-using (var fs = new System.IO.FileStream("test.tga", FileMode.Open, FileAccess.Read, FileShare.Read))
-using (var reader = new System.IO.BinaryReader(fs))
+// Load the original TGA image
+TgaImage actualImage = new("test_8bit.tga");
+
+// Save the image using the specified TgaMode
+using FileStream fs = File.Create("test03.tga");
+TgaFileFormat.CommonSave(TgaMode.Pal8Rle, fs, actualImage);
+
+// Reload the saved image
+TgaImage actualImage2 = new("test03.tga");
+
+// Compare dimensions
+int width = actualImage.Width;
+int height = actualImage.Height;
+
+Assert.That(width, Is.EqualTo(actualImage2.Width));
+Assert.That(height, Is.EqualTo(actualImage2.Height));
+
+// Compare pixel data
+for (int x = 0; x < width; x++)
 {
-    var tga = new TgaLib.TgaImage(reader);
-    System.Windows.Media.Imaging.BitmapSource source = tga.GetBitmap();
+    for (int y = 0; y < height; y++)
+    {
+        actualImage.GetPixelRgba(x, y, out int r1, out int g1, out int b1, out int a1);
+        actualImage2.GetPixelRgba(x, y, out int r2, out int g2, out int b2, out int a2);
+        Assert.That(r1, Is.EqualTo(r2), $"Red component mismatch at ({x}, {y})");
+        Assert.That(g1, Is.EqualTo(g2), $"Green component mismatch at ({x}, {y})");
+        Assert.That(b1, Is.EqualTo(b2), $"Blue component mismatch at ({x}, {y})");
+    }
 }
 ```
