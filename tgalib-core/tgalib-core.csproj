@@ -5,6 +5,7 @@
         <RootNamespace>tgalib_core</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+	<Version>$(NUGET_PACKAGE_VERSION)</Version>
     </PropertyGroup>
 
 </Project>
