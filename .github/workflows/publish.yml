@@ -26,11 +26,18 @@ jobs:
       - name: Build project
         run: dotnet build --configuration Release --no-restore
 
+      - name: Extract version
+        id: get_version
+        shell: bash
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG_NAME#v}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version: $VERSION"
+
       - name: Pack NuGet package
         run: |
-          dotnet pack --configuration Release --no-build --output ./artifacts
-        env:
-          NUGET_PACKAGE_VERSION: ${{ github.ref_name }}
+          dotnet pack --configuration Release --no-build --output ./artifacts /p:PackageVersion=${{ env.VERSION }}
 
       - name: Publish NuGet package
         run: |
