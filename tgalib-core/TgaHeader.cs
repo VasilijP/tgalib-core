@@ -10,7 +10,7 @@ public class TgaHeader
     /// <summary>
     /// Gets or sets a length of Image ID field.
     /// </summary>
-    public byte IDLength { get; set; }
+    public byte IdLength { get; set; }
 
     /// <summary>
     /// Gets or sets a Color Map type(<see cref="ColorMapTypes"/>).
@@ -83,7 +83,7 @@ public class TgaHeader
     /// <param name="reader">A binary reader that contains TGA file. Caller must dipose the binary reader.</param>
     public TgaHeader(BinaryReader reader)
     {
-        IDLength = reader.ReadByte();
+        IdLength = reader.ReadByte();
         ColorMapType = reader.ReadByte();
         ImageType = (TgaMode)reader.ReadByte();
         ColorMapStart = reader.ReadUInt16();
@@ -104,7 +104,7 @@ public class TgaHeader
     public override string ToString()
     {
         StringBuilder sb = new StringBuilder();
-        sb.Append($"IDLength       : {IDLength}\r\n");
+        sb.Append($"IDLength       : {IdLength}\r\n");
         sb.Append($"ColorMapType   : {ColorMapType}({ColorMapTypes.ToFormattedText(ColorMapType)})\r\n");
         sb.Append($"ImageType      : {ImageType}({ImageTypes.ToFormattedText(ImageType)})\r\n");
         sb.Append($"ColorMapStart  : {ColorMapStart}\r\n");

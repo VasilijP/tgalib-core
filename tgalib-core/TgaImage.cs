@@ -5,7 +5,7 @@ namespace tgalib_core
     /// <summary>
     /// Represents TGA image.
     /// </summary>
-    public class TgaImage
+    public class TgaImage : IImage
     {
         /// <summary>
         /// Use the alpha channel forcefully, if true.
@@ -72,7 +72,7 @@ namespace tgalib_core
         {
             TgaHeader = new TgaHeader(reader);
 
-            ImageId = new byte[TgaHeader.IDLength];
+            ImageId = new byte[TgaHeader.IdLength];
             reader.Read(ImageId, 0, ImageId.Length);
             PixelFormat = DecodePixelFormat();
             imageWidth = TgaHeader.Width;
