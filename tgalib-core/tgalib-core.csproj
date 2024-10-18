@@ -1,10 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+	<Authors>Peter Truchly</Authors>
         <TargetFramework>net8.0</TargetFramework>
         <RootNamespace>tgalib_core</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable>
+	<Description>Library for loading and saving Truevision TGA, often referred to as TARGA raster image file format.</Description>
+        <PackageTags>tga;image;graphics</PackageTags>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/VasilijP/tgalib-core</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/VasilijP/tgalib-core</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
     </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="../README.md" Pack="true" PackagePath="./"/>
+    </ItemGroup>
 
 </Project>
