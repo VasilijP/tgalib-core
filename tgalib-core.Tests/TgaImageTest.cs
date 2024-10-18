@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using NUnit.Framework;
-using NUnit.Framework.Legacy;
-using tgalib_core;
+﻿using NUnit.Framework;
 
 namespace tgalib_core.Tests;
 
@@ -11,39 +7,48 @@ namespace tgalib_core.Tests;
 public class TgaImageTest
 {
     [Test]
-    [TestCase("resources/UBW8.TGA", "resources/grayscale.png", false)]
-    [TestCase("resources/UCM8.TGA", "resources/color.png", false)]
-    [TestCase("resources/UTC16.TGA", "resources/color.png", false)]
-    [TestCase("resources/UTC24.TGA", "resources/color.png", false)]
-    [TestCase("resources/UTC32.TGA", "resources/color.png", false)]
-    [TestCase("resources/UBW8.TGA", "resources/grayscale.png", true)]
-    [TestCase("resources/CBW8.TGA", "resources/grayscale.png", false)]
-    [TestCase("resources/CCM8.TGA", "resources/color.png", false)]
-    [TestCase("resources/CTC16.TGA", "resources/color.png", false)]
-    [TestCase("resources/CTC24.TGA", "resources/color.png", false)]
-    [TestCase("resources/CTC32.TGA", "resources/color.png", false)]
-    [TestCase("resources/rgb32rle.tga","resources/rgb32rle.png", true)]
-    public void TestGetBitmap(string filename, string expected, bool useAlphaForcefully)
+    [TestCase("resources/UBW8.TGA", "resources/grayscale_ref.tga", false)]
+    [TestCase("resources/UCM8.TGA", "resources/color_ref.tga", false)]
+    [TestCase("resources/UTC16.TGA", "resources/color_ref.tga", false)]
+    [TestCase("resources/UTC24.TGA", "resources/color_ref.tga", false)]
+    [TestCase("resources/UTC32.TGA", "resources/color_ref.tga", false)]
+    [TestCase("resources/UBW8.TGA", "resources/grayscale_ref.tga", true)]
+    [TestCase("resources/CBW8.TGA", "resources/grayscale_ref.tga", false)]
+    [TestCase("resources/CCM8.TGA", "resources/color_ref.tga", false)]
+    [TestCase("resources/CTC16.TGA", "resources/color_ref.tga", false)]
+    [TestCase("resources/CTC24.TGA", "resources/color_ref.tga", false)]
+    [TestCase("resources/CTC32.TGA", "resources/color_ref.tga", false)]
+    // [TestCase("resources/rgb32rle.tga","resources/rgb32rle_ref.tga", true)] TODO: review&test processing of Alpha Channel in a future
+    public void TestGetImage(string filename, string expectedFilename, bool useAlphaForcefully)
     {
-        using FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-        using BinaryReader r = new BinaryReader(fs);
+        // Load the actual image
+        TgaImage actualImage = new(filename, useAlphaForcefully);
+
+        // Load the expected reference image
+        TgaImage expectedImage = new(expectedFilename, useAlphaForcefully);
+
+        // Compare dimensions
+        int actualWidth = actualImage.Width;
+        int actualHeight = actualImage.Height;
+        int expectedWidth = expectedImage.Width;
+        int expectedHeight = expectedImage.Height;
         
-        /* TODO: implement tests actually comparing reference image for each test case.
-        var expectedImage = new BitmapImage(new Uri(expected, UriKind.Relative));
-        var tga = new TgaImage(r, useAlphaForcefully);
-        var actualImage = tga.GetBitmap();
+        Assert.That(actualWidth, Is.EqualTo(expectedWidth), $"Image widths do not match for file: {filename}");
+        Assert.That(actualHeight, Is.EqualTo(expectedHeight), $"Image heights do not match for file: {filename}");
 
-        var expectedConvertedImage = new FormatConvertedBitmap(expectedImage, PixelFormat.Bgra32, null, 0.0);
-        var bytesPerPixel = (expectedConvertedImage.Format.BitsPerPixel + 7) / 8;
-        var stride = expectedConvertedImage.PixelWidth * bytesPerPixel;
-        var expectedImageBytes = new byte[stride * expectedImage.PixelHeight];
-        expectedConvertedImage.CopyPixels(expectedImageBytes, stride, 0);
+        // Compare pixel data
+        for (int y = 0; y < actualHeight; y++)
+        {
+            for (int x = 0; x < actualWidth; x++)
+            {
+                actualImage.GetPixelRgba(x, y, out int actualR, out int actualG, out int actualB, out int actualA);
+                expectedImage.GetPixelRgba(x, y, out int expectedR, out int expectedG, out int expectedB, out int expectedA);
 
-        var actualConvertedImage = new FormatConvertedBitmap(actualImage, PixelFormat.Bgra32, null, 0.0);
-        var actualImageBytes = new byte[stride * tga.Header.Height];
-        actualConvertedImage.CopyPixels(actualImageBytes, stride, 0);
-
-        CollectionAssert.AreEqual(expectedImageBytes, actualImageBytes, string.Format("expected:{0}, actual:{1}", expected, filename));
-        */
+                Assert.That(actualR, Is.EqualTo(expectedR), $"Red component mismatch at ({x}, {y}) in file: {filename}");
+                Assert.That(actualG, Is.EqualTo(expectedG), $"Green component mismatch at ({x}, {y}) in file: {filename}");
+                Assert.That(actualB, Is.EqualTo(expectedB), $"Blue component mismatch at ({x}, {y}) in file: {filename}");
+                if (useAlphaForcefully) { Assert.That(actualA, Is.EqualTo(expectedA), $"Alpha component mismatch at ({x}, {y}) in file: {filename}"); }
+            }
+        }
     }
 }
