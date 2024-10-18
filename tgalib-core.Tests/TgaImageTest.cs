@@ -28,7 +28,7 @@ public class TgaImageTest
         using FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
         using BinaryReader r = new BinaryReader(fs);
         
-        /* TODO:
+        /* TODO: implement tests actually comparing reference image for each test case.
         var expectedImage = new BitmapImage(new Uri(expected, UriKind.Relative));
         var tga = new TgaImage(r, useAlphaForcefully);
         var actualImage = tga.GetBitmap();

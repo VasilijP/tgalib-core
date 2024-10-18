@@ -68,14 +68,14 @@ public static class TgaFileFormat
 		tgaFile.Write(header);
 		
 		RleCompressor rlec = new(tgaFile);
-		for (int y = 0; y < height; ++y)
+		for (int y = 0; y < height; ++y) // TODO: according to v2 spec, there should not be a run overlapping 2 scanlines
 			for (int x = 0; x < width; ++x)
 			{ 
 				image.GetPixelRgba(x, y, out int r, out int g, out int b, out int a);
-				rlec.write([(byte)(b & 255), (byte)(g & 255), (byte)(r & 255)]);
+				rlec.Write([(byte)(b & 255), (byte)(g & 255), (byte)(r & 255)]);
 			}
 			
-		rlec.forceWrite();
+		rlec.ForceWrite();
 		tgaFile.Close();
 	}
 	
@@ -119,10 +119,10 @@ public static class TgaFileFormat
 			{
 				image.GetPixelRgba(x, y, out int r, out int g, out int b, out int a);
 				string key = $"{r & 255}|{g & 255}|{b & 255}";
-				rlec.write(hm.TryGetValue(key, out int value)?(byte)value:(byte)0); // write index of a color in palette
+				rlec.Write(hm.TryGetValue(key, out int value)?(byte)value:(byte)0); // write index of a color in palette
 			}
 			
-		rlec.forceWrite();//write last pixels
+		rlec.ForceWrite();//write last pixels
 		tgaFile.Close();
 	}	
 	

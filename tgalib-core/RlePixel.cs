@@ -3,6 +3,9 @@
 // Pixel value with repetition count.
 public class RlePixel(byte[] arg)
 {
-    public byte[] c = arg;
-    public int rep = 1; 
+    // data for a single pixel
+    public readonly byte[] C = arg;
+    
+    // repetition count (on top of the single pixel)
+    public int Rep = 0; 
 }
